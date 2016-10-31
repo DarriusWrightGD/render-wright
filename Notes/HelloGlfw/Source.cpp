@@ -1,6 +1,9 @@
 #include <glad\glad.h>
 #include <GLFW\glfw3.h>
 #include <iostream>
+#include <string>
+#include <fstream>
+#include <streambuf>
 
 void error_callback(int error, const char* description)
 {
@@ -13,10 +16,40 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
+void init();
+
 GLFWwindow* window;
 int width, height;
 
-void init();
+GLuint createShader(const char * filename, GLuint shaderType) {
+
+	std::ifstream shaderCodeStream(filename);
+	if (!shaderCodeStream.is_open()) {
+		std::cout << "The file " << filename << " does not exist!" << std::endl;
+		exit(-1);
+	}
+
+	auto shaderCode = std::string((std::istreambuf_iterator<char>(shaderCodeStream)), std::istreambuf_iterator<char>());
+	auto shaderCharArray = shaderCode.c_str();
+
+	GLuint shader = glCreateShader(shaderType);
+	glShaderSource(shader, 1, &shaderCharArray, nullptr);
+	glCompileShader(shader);
+	GLint status;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+
+	if (status != GL_TRUE) {
+		GLint logSize = 0;
+		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logSize);
+		char * log = new char[logSize];
+		glGetShaderInfoLog(shader, logSize, nullptr, log);
+		std::cout << "Shader Error: " << log << std::endl;
+		delete[] log;
+		exit(-1);
+	}
+
+	return shader;
+}
 
 GLfloat vertices[6][2]{
 	{ -0.9, -0.9 },
@@ -26,26 +59,6 @@ GLfloat vertices[6][2]{
 	{ 0.9, 0.9 },
 	{ -0.85, 0.9},
 };
-
-const char * vertexShaderCode =
-"#version 440 core\n"
-"layout (location = 0) in vec4 vPosition;\n"
-"\n"
-"void main(){\n"
-"gl_Position = vPosition;\n"
-"}\n"
-""
-;
-
-const char * fragmentShaderCode =
-"#version 440 core\n"
-"out vec4 fColor;"
-"\n"
-"void main() {\n"
-"fColor = vec4(0,0,1,1);\n"
-"}\n"
-""
-;
 
 int main() {
 	init();
@@ -58,18 +71,25 @@ int main() {
 	glBindBuffer(GL_ARRAY_BUFFER, triangleBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderCode, nullptr);
-	glCompileShader(vertexShader);
-
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderCode, nullptr);
-	glCompileShader(fragmentShader);
+	GLuint vertexShader = createShader("vertexShader.vert", GL_VERTEX_SHADER);
+	GLuint fragmentShader = createShader("fragmentShader.frag", GL_FRAGMENT_SHADER);
 
 	GLuint program = glCreateProgram();
 	glAttachShader(program, vertexShader);
 	glAttachShader(program, fragmentShader);
 	glLinkProgram(program);
+
+	GLint programStatus;
+	glGetProgramiv(program, GL_LINK_STATUS, &programStatus);
+	if (programStatus != GL_TRUE) {
+		GLint logLength;
+		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
+		char * log = new char[logLength];
+		glGetProgramInfoLog(program, logLength, nullptr, log);
+		std::cerr << "Program Error: " << log << std::endl;
+		delete[] log;
+		exit(-1);
+	}
 	glUseProgram(program);
 
 
@@ -89,11 +109,14 @@ int main() {
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 	glDeleteProgram(program);
 	glfwDestroyWindow(window);
 	glfwTerminate();
+
+	return 0;
 }
 
 void init() {
@@ -108,7 +131,7 @@ void init() {
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
-	window = glfwCreateWindow(640, 480, "Hello Glfw", NULL, NULL);
+	window = glfwCreateWindow(640, 480, "Hello GLFW", NULL, NULL);
 	if (!window)
 	{
 		// Window or OpenGL context creation failed
@@ -120,6 +143,6 @@ void init() {
 	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 	glfwSwapInterval(1);
 	glfwGetFramebufferSize(window, &width, &height);
-	std::cout << "OpenGL Version: " << GLVersion.major << "." << GLVersion.minor << " loaded";
+	std::cout << "OpenGL Version: " << GLVersion.major << "." << GLVersion.minor << " loaded" << std::endl;
 }
 
