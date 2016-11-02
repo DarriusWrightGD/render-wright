@@ -165,6 +165,8 @@ int main() {
 		glfwPollEvents();
 	}
 
+	glDeleteBuffers(1, &triangleBuffer);
+	glDeleteVertexArrays(1, &triangleVertexArray);
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 	glDeleteProgram(program);

@@ -120,7 +120,8 @@ int main() {
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-
+	glDeleteBuffers(1, &triangleBuffer);
+	glDeleteVertexArrays(1, &triangleVertexArray);
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 	glDeleteProgram(program);
