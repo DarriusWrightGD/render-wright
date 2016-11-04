@@ -11,6 +11,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Buffers", "Buffers\Buffers.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VertexSpecification", "VertexSpecification\VertexSpecification.vcxproj", "{B093DB57-15DE-4D44-BAC4-C63107907572}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DrawCommands", "DrawCommands\DrawCommands.vcxproj", "{E4FBBAF7-8902-46A5-BE93-11540C6266EF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PrimitiveRestart", "PrimitiveRestart\PrimitiveRestart.vcxproj", "{723C04B3-2195-4BDE-A021-659E9D8CCAA1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -51,6 +55,22 @@ Global
 		{B093DB57-15DE-4D44-BAC4-C63107907572}.Release|x64.Build.0 = Release|x64
 		{B093DB57-15DE-4D44-BAC4-C63107907572}.Release|x86.ActiveCfg = Release|Win32
 		{B093DB57-15DE-4D44-BAC4-C63107907572}.Release|x86.Build.0 = Release|Win32
+		{E4FBBAF7-8902-46A5-BE93-11540C6266EF}.Debug|x64.ActiveCfg = Debug|x64
+		{E4FBBAF7-8902-46A5-BE93-11540C6266EF}.Debug|x64.Build.0 = Debug|x64
+		{E4FBBAF7-8902-46A5-BE93-11540C6266EF}.Debug|x86.ActiveCfg = Debug|Win32
+		{E4FBBAF7-8902-46A5-BE93-11540C6266EF}.Debug|x86.Build.0 = Debug|Win32
+		{E4FBBAF7-8902-46A5-BE93-11540C6266EF}.Release|x64.ActiveCfg = Release|x64
+		{E4FBBAF7-8902-46A5-BE93-11540C6266EF}.Release|x64.Build.0 = Release|x64
+		{E4FBBAF7-8902-46A5-BE93-11540C6266EF}.Release|x86.ActiveCfg = Release|Win32
+		{E4FBBAF7-8902-46A5-BE93-11540C6266EF}.Release|x86.Build.0 = Release|Win32
+		{723C04B3-2195-4BDE-A021-659E9D8CCAA1}.Debug|x64.ActiveCfg = Debug|x64
+		{723C04B3-2195-4BDE-A021-659E9D8CCAA1}.Debug|x64.Build.0 = Debug|x64
+		{723C04B3-2195-4BDE-A021-659E9D8CCAA1}.Debug|x86.ActiveCfg = Debug|Win32
+		{723C04B3-2195-4BDE-A021-659E9D8CCAA1}.Debug|x86.Build.0 = Debug|Win32
+		{723C04B3-2195-4BDE-A021-659E9D8CCAA1}.Release|x64.ActiveCfg = Release|x64
+		{723C04B3-2195-4BDE-A021-659E9D8CCAA1}.Release|x64.Build.0 = Release|x64
+		{723C04B3-2195-4BDE-A021-659E9D8CCAA1}.Release|x86.ActiveCfg = Release|Win32
+		{723C04B3-2195-4BDE-A021-659E9D8CCAA1}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
