@@ -51,13 +51,14 @@ GLuint createShader(const char * filename, GLuint shaderType) {
 	return shader;
 }
 
-GLfloat vertices[6][2]{
-	{ -0.9, -0.9 },
-	{ 0.85, -0.9 },
-	{ -0.9, 0.85 },
-	{ 0.9, -0.85 },
-	{ 0.9, 0.9 },
-	{ -0.85, 0.9},
+GLfloat vertices[7][2]{
+	{ -0.9, 0.1 },
+	{ -0.7, 0.1 },
+	{ -0.7, -0.1 },
+	{ -0.5, 0.1 },
+	{ -0.3, -0.1 },
+	{ -0.3, 0.1 },
+	{ -0.1, 0.1 },
 };
 
 int main() {
@@ -107,12 +108,13 @@ int main() {
 	
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(0);
-
+	glEnable(GL_PRIMITIVE_RESTART);
 	while (!glfwWindowShouldClose(window))
 	{
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glPrimitiveRestartIndex(3);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 7);
 		
 #ifndef NDEBUG 
 		glFinish();
