@@ -9,6 +9,7 @@
 #include <assimp\postprocess.h>
 #include <glm\glm.hpp>
 #include <glm\gtx\transform.hpp>
+#include <glm\gtc\random.hpp>
 #include <vector>
 
 using std::vector;
@@ -28,6 +29,11 @@ void init();
 
 GLFWwindow* window;
 int width, height;
+
+static void resize_callback(GLFWwindow * window, int w, int h) {
+	width = w;
+	height = h;
+}
 
 GLuint createShader(const char * filename, GLuint shaderType) {
 
@@ -86,18 +92,19 @@ int main() {
 
 	aiMesh* mesh = scene->mMeshes[0];
 	int faceCount = mesh->mNumFaces;
-	vector<Vertex> vertices;//(mesh->mNumVertices);
-	//int vertexCount = 0;
+	vector<Vertex> vertices;
+	vector<GLuint> indices;
 	for (size_t i = 0; i < faceCount; i++)
 	{
 		const aiFace & face = mesh->mFaces[i];
 		for (size_t x = 0; x < 3; x++)
 		{
 			auto position = mesh->mVertices[face.mIndices[x]];
-			vertices.push_back({ {position.x, position.y, position.z} });
-			//vertexCount++;
+			vertices.push_back({ { position.x, position.y, position.z } });
 		}
 	}
+
+	glClearColor(1, 1, 1, 1);
 
 	GLuint bearVertexArray;
 	glGenVertexArrays(1, &bearVertexArray);
@@ -107,6 +114,63 @@ int main() {
 	glGenBuffers(1, &bearBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, bearBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glEnableVertexAttribArray(0);
+
+	GLuint instanceCount = 1000;
+	GLuint colorBuffer;
+
+	glGenBuffers(1, &colorBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof glm::vec3 * instanceCount, nullptr, GL_STATIC_DRAW);
+
+	auto colorData = reinterpret_cast<char*>(glMapBufferRange(GL_ARRAY_BUFFER, 0, sizeof glm::vec3 * instanceCount, GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT));
+
+	for (size_t i = 0; i < instanceCount; i++)
+	{
+		glm::vec3 randomColor = glm::linearRand(glm::vec3(0.2f,0.4f,0.1f), glm::vec3(1.0f));
+		memcpy(colorData + sizeof glm::vec3 * i, &randomColor[0], sizeof glm::vec3);
+		glFlushMappedBufferRange(GL_ARRAY_BUFFER, sizeof glm::vec3 * i, sizeof glm::vec3);
+	}
+
+	glUnmapBuffer(GL_ARRAY_BUFFER);
+	glFinish();
+
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(0));
+	glEnableVertexAttribArray(1);
+	glVertexAttribDivisor(1, 1);
+
+	GLuint mvpBuffer;
+	glGenBuffers(1, &mvpBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, mvpBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof glm::mat4 * instanceCount, nullptr, GL_STATIC_DRAW);
+
+	auto mvpData = reinterpret_cast<char*>(glMapBufferRange(GL_ARRAY_BUFFER, 0, sizeof glm::mat4 * instanceCount, GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT));
+	glm::mat4 viewProjection = glm::perspective(glm::radians(90.0f), static_cast<float>(width)/height, 0.1f, 3000.f) // projection
+		* glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	
+	for (size_t i = 0; i < instanceCount; i++)
+	{
+		auto randomPosition = glm::linearRand(glm::vec3(-100.0f, -100.0f, -30.0f), glm::vec3(100.0f, 100.0f, -200.0f));
+		auto randomRotation = glm::radians(glm::linearRand(0.0f, 360.0f));
+		glm::mat4 mvp = viewProjection * glm::translate(randomPosition) * glm::rotate(randomRotation, glm::vec3(1.0f));
+		
+		memcpy(mvpData + sizeof glm::mat4 * i, &mvp[0][0], sizeof(glm::mat4));
+		glFlushMappedBufferRange(GL_ARRAY_BUFFER, sizeof glm::mat4 * i, sizeof glm::mat4);
+	}
+	glUnmapBuffer(GL_ARRAY_BUFFER);
+	glFinish();
+
+	GLuint matLocation = 2;
+	for (size_t i = 0; i < 4; i++)
+	{
+
+		glVertexAttribPointer(matLocation + i, 4, GL_FLOAT, GL_FALSE, sizeof glm::mat4, reinterpret_cast<void*>(sizeof glm::vec4 * i));
+		glEnableVertexAttribArray(matLocation + i);
+		glVertexAttribDivisor(matLocation + i, 1);
+	}
+
+
 
 	GLuint vertexShader = createShader("vertexShader.vert", GL_VERTEX_SHADER);
 	GLuint fragmentShader = createShader("fragmentShader.frag", GL_FRAGMENT_SHADER);
@@ -132,23 +196,12 @@ int main() {
 	glDetachShader(program, fragmentShader);
 	glUseProgram(program);
 
-	auto mvpIndex = glGetUniformLocation(program, "mvp");
-	glm::mat4 mvp = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 1000.f) // projection
-		* glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f))  // view
-		*  glm::translate(glm::vec3{ 0.0f,-8.0f,-70.0f }) * glm::rotate(glm::radians(90.0f), glm::vec3(1.0f, 1.0f, 0.0f)); // model
-
-	glUniformMatrix4fv(mvpIndex, 1, GL_FALSE, &mvp[0][0]);
-
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-	glEnableVertexAttribArray(0);
-
 	while (!glfwWindowShouldClose(window))
 	{
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT);
-		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-
+		//glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+		glDrawArraysInstanced(GL_TRIANGLES, 0, vertices.size(), instanceCount);
 #ifndef NDEBUG 
 		glFinish();
 #endif
@@ -178,7 +231,7 @@ void init() {
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
-	window = glfwCreateWindow(640, 480, "Hello Model Loading", NULL, NULL);
+	window = glfwCreateWindow(640, 480, "1000 Bears", NULL, NULL);
 	if (!window)
 	{
 		// Window or OpenGL context creation failed
@@ -190,6 +243,8 @@ void init() {
 	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 	glfwSwapInterval(1);
 	glfwGetFramebufferSize(window, &width, &height);
+	glfwSetWindowSizeCallback(window, resize_callback);
+
 	std::cout << "OpenGL Version: " << GLVersion.major << "." << GLVersion.minor << " loaded" << std::endl;
 }
 

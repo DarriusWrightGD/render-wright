@@ -16,6 +16,11 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
+static void resize_callback(GLFWwindow * window, int w, int h) {
+	width = w;
+	height = h;
+}
+
 void init();
 
 GLFWwindow* window;
@@ -155,6 +160,7 @@ void init() {
 	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 	glfwSwapInterval(1);
 	glfwGetFramebufferSize(window, &width, &height);
+	glfwSetWindowSizeCallback(window, resize_callback);
 	std::cout << "OpenGL Version: " << GLVersion.major << "." << GLVersion.minor << " loaded" << std::endl;
 }
 
