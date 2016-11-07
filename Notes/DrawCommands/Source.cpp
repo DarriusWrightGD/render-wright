@@ -138,10 +138,10 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT);
 		//The ways of drawing
 
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		//glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		//glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 6 // the number of instances to render, and the gl_InstanceID can be used in the shader to tell what instance you are using.
-		//);
+		glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 6 // the number of instances to render, and the gl_InstanceID can be used in the shader to tell what instance you are using.
+		);
 
 		//glDrawElements(GL_TRIANGLES, // choose any valid draw primitive
 		//	3, // the number of indices that you will be using
