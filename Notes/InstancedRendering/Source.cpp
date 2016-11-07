@@ -90,7 +90,7 @@ int main() {
 		exit(-1);
 	}
 
-	aiMesh* mesh = scene->mMeshes[0];
+	aiMesh* mesh = scene->mMeshes[0]; 
 	int faceCount = mesh->mNumFaces;
 	vector<Vertex> vertices;
 	vector<GLuint> indices;
