@@ -151,7 +151,7 @@ int main() {
 	
 	for (size_t i = 0; i < instanceCount; i++)
 	{
-		auto randomPosition = glm::linearRand(glm::vec3(-100.0f, -100.0f, -30.0f), glm::vec3(100.0f, 100.0f, -200.0f));
+		auto randomPosition = glm::linearRand(glm::vec3(-100.0f, -40.0f, -30.0f), glm::vec3(100.0f, 40.0f, -200.0f));
 		auto randomRotation = glm::radians(glm::linearRand(0.0f, 360.0f));
 		glm::mat4 mvp = viewProjection * glm::translate(randomPosition) * glm::rotate(randomRotation, glm::vec3(1.0f));
 		

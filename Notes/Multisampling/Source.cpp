@@ -16,6 +16,8 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
+
+
 void init();
 
 GLFWwindow* window;
@@ -113,6 +115,28 @@ int main() {
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(0);
 
+	//multi sampling must be enabled in order to be used
+	glEnable(GL_MULTISAMPLE);
+	//glEnable(GL_SAMPLE_SHADING); // if you cannot add the sample variable to your shaders then you can add it here
+	//glMinSampleShading(1.0f/16.0f);
+
+	GLint samples;
+	glGetIntegerv(GL_SAMPLES, &samples);
+
+	GLint multiSample;
+	glGetIntegerv(GL_MULTISAMPLE, &multiSample);
+
+	GLint maxSample;
+	glGetIntegerv(GL_MAX_SAMPLES, &maxSample);
+
+	GLfloat sampleLocation [2];
+	GLint index = 15;
+	glGetMultisamplefv(GL_SAMPLE_POSITION, index, sampleLocation);
+
+	std::cout << "Multisample: " << multiSample << "\nSamples: " << samples <<
+		"\nMax Samples: "<< maxSample << "\nSample Location (" << index << ") : " << 
+		sampleLocation[0] << ", " << sampleLocation[1] << std::endl;
+
 	while (!glfwWindowShouldClose(window))
 	{
 		glViewport(0, 0, width, height);
@@ -148,6 +172,7 @@ void init() {
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
+	glfwWindowHint(GLFW_SAMPLES, 16); // request the window have 16 samples per pixel
 	window = glfwCreateWindow(640, 480, "Hello GLFW", NULL, NULL);
 	if (!window)
 	{
