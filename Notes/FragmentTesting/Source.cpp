@@ -56,13 +56,28 @@ GLuint createShader(const char * filename, GLuint shaderType) {
 	return shader;
 }
 
-GLfloat vertices[6][3]{
-	{ -0.9, -0.9, 1 },
-	{ 0.85, -0.9,1 },
-	{ -0.9, 0.85,1 },
-	{ 0.9, -0.85,1 },
-	{ 0.9, 0.9 ,1},
-	{ -0.85, 0.9,1},
+GLfloat vertices[9][3]{
+	{ -0.9, -0.9, -0.1 },
+	{ 0.85, -0.9,-0.1 },
+	{ -0.9, 0.85,-0.1 },
+	{ 0.5, -0.85,0 },
+	{ 0.9, 0.9 ,0},
+	{ -0.85, 0.9,0},
+	{ 1.0, -0.85,-0.1 },
+	{ 1.0, 1.0 ,-0.1 },
+	{ -0.85, 1.0,-0.1 },
+};
+
+GLfloat colors[9][4]{
+	{ 0.2,0.5,0.6, 1.0 },
+	{ 0.2,0.0,0.2, 1.0 },
+	{ 0.2,0.1,0.7, 1.0 },
+	{ 0.0,0.0,0.0, 1.0 },
+	{ 0.0,0.0,0.0, 1.0 },
+	{ 0.0,0.0,0.0, 1.0 },
+	{ 0.0,1.0,0.0, 1.0 },
+	{ 0.0,1.0,0.0, 1.0 },
+	{ 0.0,1.0,0.0, 1.0 },
 };
 
 int main() {
@@ -95,7 +110,15 @@ int main() {
 	GLuint triangleBuffer;
 	glGenBuffers(1, &triangleBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, triangleBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof vertices + sizeof colors, nullptr, GL_STATIC_DRAW);
+	auto triangleData = reinterpret_cast<char*>(glMapBufferRange(GL_ARRAY_BUFFER, 0, sizeof vertices + sizeof colors, GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT));
+	memcpy(triangleData, vertices, sizeof vertices);
+	glFlushMappedBufferRange(GL_ARRAY_BUFFER, 0, sizeof vertices);
+	memcpy(triangleData + sizeof vertices, colors, sizeof colors);
+	glFlushMappedBufferRange(GL_ARRAY_BUFFER, sizeof vertices, sizeof colors);
+
+	glFinish();
+	glUnmapBuffer(GL_ARRAY_BUFFER);
 
 	GLuint vertexShader = createShader("vertexShader.vert", GL_VERTEX_SHADER);
 	GLuint fragmentShader = createShader("fragmentShader.frag", GL_FRAGMENT_SHADER);
@@ -123,15 +146,29 @@ int main() {
 
 
 	
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void *>(0));
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(sizeof vertices));
 	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+
+	glClearStencil(0x0);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);//default depth function
+	glEnable(GL_STENCIL_TEST);
 
 	while (!glfwWindowShouldClose(window))
 	{
 		glViewport(0, 0, width, height);
-		glClear(GL_COLOR_BUFFER_BIT);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		
+		glStencilFunc(GL_ALWAYS, 1, 0xF);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		glDrawArrays(GL_TRIANGLES, 3, 3);
+
+		glStencilFunc(GL_EQUAL, 1, 0xF);
+		glDrawArrays(GL_TRIANGLES, 6, 3);
+		glStencilFunc(GL_NOTEQUAL, 1, 0xF);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 #ifndef NDEBUG 
 		glFinish();
 #endif
@@ -161,7 +198,8 @@ void init() {
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
-	window = glfwCreateWindow(640, 480, "Hello GLFW", NULL, NULL);
+	glfwWindowHint(GLFW_SAMPLES, 4);
+	window = glfwCreateWindow(640, 480, "Hello Fragment Testing", nullptr, nullptr);
 	if (!window)
 	{
 		// Window or OpenGL context creation failed
