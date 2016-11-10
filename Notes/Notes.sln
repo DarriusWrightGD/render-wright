@@ -25,6 +25,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FragmentTesting", "Fragment
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PolygonOffset", "PolygonOffset\PolygonOffset.vcxproj", "{948C60AC-790A-427D-B099-EAA6EF263748}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Blending", "Blending\Blending.vcxproj", "{A8A96571-DA97-425E-830C-7BD6F9868613}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -121,6 +123,14 @@ Global
 		{948C60AC-790A-427D-B099-EAA6EF263748}.Release|x64.Build.0 = Release|x64
 		{948C60AC-790A-427D-B099-EAA6EF263748}.Release|x86.ActiveCfg = Release|Win32
 		{948C60AC-790A-427D-B099-EAA6EF263748}.Release|x86.Build.0 = Release|Win32
+		{A8A96571-DA97-425E-830C-7BD6F9868613}.Debug|x64.ActiveCfg = Debug|x64
+		{A8A96571-DA97-425E-830C-7BD6F9868613}.Debug|x64.Build.0 = Debug|x64
+		{A8A96571-DA97-425E-830C-7BD6F9868613}.Debug|x86.ActiveCfg = Debug|Win32
+		{A8A96571-DA97-425E-830C-7BD6F9868613}.Debug|x86.Build.0 = Debug|Win32
+		{A8A96571-DA97-425E-830C-7BD6F9868613}.Release|x64.ActiveCfg = Release|x64
+		{A8A96571-DA97-425E-830C-7BD6F9868613}.Release|x64.Build.0 = Release|x64
+		{A8A96571-DA97-425E-830C-7BD6F9868613}.Release|x86.ActiveCfg = Release|Win32
+		{A8A96571-DA97-425E-830C-7BD6F9868613}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

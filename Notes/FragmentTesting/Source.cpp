@@ -80,6 +80,7 @@ GLfloat colors[9][4]{
 	{ 0.0,1.0,0.0, 1.0 },
 };
 
+
 int main() {
 	init();
 
@@ -91,17 +92,16 @@ int main() {
 	4. Perform additional per-fragment operations.
 	*/
 
-
 	/*
-		There are various tests that decide if a fragment will become a pixel or not
+	There are various tests that decide if a fragment will become a pixel or not
 
-		1. Scissor Test
-		2. Multisample fragment operations
-		3. Stencil Test
-		4. Depth test
-		5. Blending
-		6. Dithering
-		7. Logical operations
+	1. Scissor Test
+	2. Multisample fragment operations
+	3. Stencil Test
+	4. Depth test
+	5. Blending
+	6. Dithering
+	7. Logical operations
 	*/
 	GLuint triangleVertexArray;
 	glGenVertexArrays(1, &triangleVertexArray);
@@ -111,12 +111,12 @@ int main() {
 	glGenBuffers(1, &triangleBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, triangleBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof vertices + sizeof colors, nullptr, GL_STATIC_DRAW);
+
 	auto triangleData = reinterpret_cast<char*>(glMapBufferRange(GL_ARRAY_BUFFER, 0, sizeof vertices + sizeof colors, GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT));
 	memcpy(triangleData, vertices, sizeof vertices);
 	glFlushMappedBufferRange(GL_ARRAY_BUFFER, 0, sizeof vertices);
 	memcpy(triangleData + sizeof vertices, colors, sizeof colors);
 	glFlushMappedBufferRange(GL_ARRAY_BUFFER, sizeof vertices, sizeof colors);
-
 	glFinish();
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 
@@ -151,13 +151,27 @@ int main() {
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 
+	glClearColor(1, 1, 1, 1);
+
+
+	glEnable(GL_SCISSOR_TEST);
+	
+	glEnable(GL_MULTISAMPLE);
+	glEnable(GL_DITHER);
+	glEnable(GL_COLOR_LOGIC_OP);
+	glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
+
 	glClearStencil(0x0);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);//default depth function
 	glEnable(GL_STENCIL_TEST);
 
+	glLogicOp(GL_XOR);
+
 	while (!glfwWindowShouldClose(window))
 	{
+		glScissor(50, 50, width - 100, height - 100);
+
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		
