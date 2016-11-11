@@ -126,13 +126,10 @@ int main() {
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 
+	//glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
-	glEnable(GL_LINE_SMOOTH);
-	glEnable(GL_POLYGON_SMOOTH);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);// opengl can ignore
-	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);// opengl can ignore
-
+	glBlendEquation(GL_FUNC_ADD);
 	while (!glfwWindowShouldClose(window))
 	{
 		glViewport(0, 0, width, height);
