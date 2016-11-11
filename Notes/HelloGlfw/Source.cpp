@@ -110,7 +110,7 @@ int main() {
 
 
 	
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(0));
 	glEnableVertexAttribArray(0);
 
 	while (!glfwWindowShouldClose(window))
@@ -148,7 +148,7 @@ void init() {
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
-	window = glfwCreateWindow(640, 480, "Hello GLFW", NULL, NULL);
+	window = glfwCreateWindow(640, 480, "Hello GLFW", nullptr, nullptr);
 	if (!window)
 	{
 		// Window or OpenGL context creation failed
@@ -157,7 +157,7 @@ void init() {
 	}
 
 	glfwMakeContextCurrent(window);
-	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+	gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
 	glfwSwapInterval(1);
 	glfwGetFramebufferSize(window, &width, &height);
 	glfwSetWindowSizeCallback(window, resize_callback);
