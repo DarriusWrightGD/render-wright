@@ -17,3 +17,35 @@ and watch me check off each of them! [Original Inspiration] (http://www.gamasutr
 * [ ] Use a graphics debugger to debug and optimize your demo
 * [ ] Write an article about your experience writing the demo
 * [ ] Check out what fellow Graphics Programmers are excited about
+
+
+# Render ideas to implement
+
+* [] A solar system with multiple astroid fields(Instance Rendered)
+* [] Ray tracing on the GPU in with / without compute shaders
+* [] A volume rendering example
+* [] Octree visualizations
+
+# Render Engine Ideas
+
+* [] Profiling every aspect(Removed on release)
+* [] Exception handling
+* [] Scene loading with Open Game Engine Exchange Specification
+* [] Occulusion Queries when triangles under threshold
+* [] Shadows(soft and volumetric)
+* [] Collision detection(Octrees)
+* [] Physics systems(Havoc, Nvidia Physics ? )
+* [] Deferred Rendering
+* [] Animations
+* [] Particle systems built in
+* [] Scripting Language of some sort(typescript, javascript, C#)
+* [] Voxel rendering effects
+* [] Motion blur capabiltities
+* [] HDR lighting
+* [] Terrian generation
+* [] Cloth support
+* [] Depth based Tesselation
+* [] Debug mode vs Game mode
+* [] Editor
+* [] Ability to port natively to different platforms(Android, WebGL, PC)
+* [] Ray tracing scenes for video trailers
