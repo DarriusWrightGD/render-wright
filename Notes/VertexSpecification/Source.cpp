@@ -52,12 +52,12 @@ GLuint createShader(const char * filename, GLuint shaderType) {
 }
 
 GLfloat vertices[6][2]{
-	{ -0.9, -0.9 },
-	{ 0.85, -0.9 },
-	{ -0.9, 0.85 },
-	{ 0.9, -0.85 },
-	{ 0.9, 0.9 },
-	{ -0.85, 0.9},
+	{ -0.9f, -0.9f },
+	{ 0.85f, -0.9f },
+	{ -0.9f, 0.85f },
+	{ 0.9f, -0.85f },
+	{ 0.9f, 0.9f },
+	{ -0.85f, 0.9f},
 };
 
 int main() {

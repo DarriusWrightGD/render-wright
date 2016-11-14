@@ -28,6 +28,7 @@ and watch me check off each of them! [Original Inspiration] (http://www.gamasutr
 
 # Render Engine Ideas
 
+* [ ] Complete Querying of graphics api's capability
 * [ ] Profiling every aspect(Removed on release)
 * [ ] Exception handling
 * [ ] Scene loading with Open Game Engine Exchange Specification

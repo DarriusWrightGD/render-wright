@@ -53,12 +53,12 @@ GLuint createShader(const char * filename, GLuint shaderType) {
 
 //Draw Arrays
 GLfloat vertices[6][2]{
-{ -0.9, -0.1 },
-{ -0.9, 0.1 },
-{ -0.7, -0.1 },
-{ -0.7, -0.1 },
-{ -0.7, 0.1 },
-{ -0.9, 0.1 },
+{ -0.9f, -0.1f },
+{ -0.9f, 0.1f },
+{ -0.7f, -0.1f },
+{ -0.7f, -0.1f },
+{ -0.7f, 0.1f },
+{ -0.9f, 0.1f },
 };
 
 //Draw Elements

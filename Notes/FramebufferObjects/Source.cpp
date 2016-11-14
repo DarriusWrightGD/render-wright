@@ -5,7 +5,7 @@
 #include <fstream>
 #include <streambuf>
 #include <fstream>
-#include <QtGui\qimage.h>
+#include <SOIL.h>
 
 using namespace std;
 
@@ -97,16 +97,16 @@ void checkFrameBufferError(GLenum status) {
 }
 
 void saveImage(const char * filename, int width, int height) {
-	unsigned int channels = 4;
-	GLubyte * pixels = new GLubyte[width * height * channels];
+	//unsigned int channels = 4;
+	//GLubyte * pixels = new GLubyte[width * height * channels];
 	// reading from a multisampled fbo doesn't work use this (http://stackoverflow.com/questions/765434/glreadpixels-from-fbo-fails-with-multisampling)
 	// or see below
-	glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-	QImage image(pixels, width, height, QImage::Format::Format_RGBA8888);
-	image = image.mirrored();
-	image.save(filename);
-	delete[] pixels;
-
+	//glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+	//QImage image(pixels, width, height, QImage::Format::Format_RGBA8888);
+	//image = image.mirrored();
+	//image.save(filename);
+	//delete[] pixels;
+	SOIL_save_screenshot(filename, SOIL_SAVE_TYPE_BMP, 0, 0, width, height);
 	cout << "Created " << filename << " Image!" << endl;
 }
 
@@ -243,7 +243,7 @@ int main() {
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
 	glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
-	saveImage("triangleMultisample.png", width, height);
+	saveImage("triangleMultisample.bmp", width, height);
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glClearColor(0, 0, 0, 1.0);

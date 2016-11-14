@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{88A836FF-AB46-4E3C-9DED-1043C3381C35}</ProjectGuid>
-    <RootNamespace>HelloGlfw</RootNamespace>
+    <ProjectGuid>{c82efd6e-a46d-45e1-a1fc-e11b7c63efbe}</ProjectGuid>
+    <RootNamespace>Textures2D</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

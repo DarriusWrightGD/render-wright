@@ -85,13 +85,13 @@ int main() {
 	}
 
 	aiMesh* mesh = scene->mMeshes[0];
-	int faceCount = mesh->mNumFaces;
+	GLuint faceCount = mesh->mNumFaces;
 	vector<Vertex> vertices;//(mesh->mNumVertices);
 	//int vertexCount = 0;
-	for (size_t i = 0; i < faceCount; i++)
+	for (GLuint i = 0; i < faceCount; i++)
 	{
 		const aiFace & face = mesh->mFaces[i];
-		for (size_t x = 0; x < 3; x++)
+		for (GLuint x = 0; x < 3; x++)
 		{
 			auto position = mesh->mVertices[face.mIndices[x]];
 			vertices.push_back({ {position.x, position.y, position.z} });
