@@ -43,6 +43,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TextureBuffer", "TextureBuf
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PointSprites", "PointSprites\PointSprites.vcxproj", "{9B0000BD-E9EF-4413-A919-E935630FA352}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FramebufferTexture", "FramebufferTexture\FramebufferTexture.vcxproj", "{2531D7ED-777F-4CCE-8EC4-65487F8B3890}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -211,6 +213,14 @@ Global
 		{9B0000BD-E9EF-4413-A919-E935630FA352}.Release|x64.Build.0 = Release|x64
 		{9B0000BD-E9EF-4413-A919-E935630FA352}.Release|x86.ActiveCfg = Release|Win32
 		{9B0000BD-E9EF-4413-A919-E935630FA352}.Release|x86.Build.0 = Release|Win32
+		{2531D7ED-777F-4CCE-8EC4-65487F8B3890}.Debug|x64.ActiveCfg = Debug|x64
+		{2531D7ED-777F-4CCE-8EC4-65487F8B3890}.Debug|x64.Build.0 = Debug|x64
+		{2531D7ED-777F-4CCE-8EC4-65487F8B3890}.Debug|x86.ActiveCfg = Debug|Win32
+		{2531D7ED-777F-4CCE-8EC4-65487F8B3890}.Debug|x86.Build.0 = Debug|Win32
+		{2531D7ED-777F-4CCE-8EC4-65487F8B3890}.Release|x64.ActiveCfg = Release|x64
+		{2531D7ED-777F-4CCE-8EC4-65487F8B3890}.Release|x64.Build.0 = Release|x64
+		{2531D7ED-777F-4CCE-8EC4-65487F8B3890}.Release|x86.ActiveCfg = Release|Win32
+		{2531D7ED-777F-4CCE-8EC4-65487F8B3890}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
