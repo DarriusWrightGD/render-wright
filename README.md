@@ -50,3 +50,5 @@ and watch me check off each of them! [Original Inspiration] (http://www.gamasutr
 * [ ] Editor
 * [ ] Ability to port natively to different platforms(Android, WebGL, PC)
 * [ ] Ray tracing scenes for video trailers
+* [ ] Texture Compression 
+* [ ] Multisampling

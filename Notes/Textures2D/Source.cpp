@@ -165,7 +165,8 @@ int main() {
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);*/
-	glTexStorage2D(GL_TEXTURE_2D, 1, (channels == 4) ? GL_RGBA8 : GL_RGB8, imageWidth, imageHeight);
+	glTexStorage2D(GL_TEXTURE_2D, 4, (channels == 4) ? GL_RGBA8 : GL_RGB8, imageWidth, imageHeight);
+	glGenerateMipmap(GL_TEXTURE_2D);
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, imageWidth, imageHeight, 
 		(channels == 4) ? GL_RGBA : GL_RGB, // format GL_RED - GL_RGBA as well as integer equivalents which allow you to take in data exactly as presented in the texture.
 		// this could be useful with ray tracing to transfer data around while maintaining values.
@@ -238,7 +239,7 @@ int main() {
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	 	
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, width, height, 0);
 
 	glClearColor(1, 1, 1, 1);
@@ -304,6 +305,7 @@ void init() {
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
+	glfwWindowHint(GLFW_SAMPLES, 4);
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 	window = glfwCreateWindow(580, 720, "Hello Model Loading", NULL, NULL);
 	if (!window)
