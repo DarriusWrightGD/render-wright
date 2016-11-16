@@ -61,6 +61,107 @@ GLuint createShader(const char * filename, GLuint shaderType) {
 	return shader;
 }
 
+struct MeshInfo
+{
+	GLuint vertexCount;
+	GLuint indexCount;
+	GLuint vertexOffset;
+	GLuint indexOffset;
+};
+
+struct MeshBuffer
+{
+	GLuint vertexBuffer;
+	GLuint indexBuffer;
+	vector<MeshInfo> meshInfos;
+};
+
+MeshBuffer addMeshes(vector<aiMesh*> meshes)
+{
+	GLuint indexCount = 0;
+	GLuint vertexCount = 0;
+
+	vector<MeshInfo> meshInfos;
+
+	for(const auto mesh : meshes)
+	{
+		MeshInfo info;
+		info.vertexOffset = vertexCount;
+		info.indexOffset = indexCount;
+		indexCount += mesh->mNumFaces * 3;
+		vertexCount += mesh->mNumVertices;
+		info.indexCount = mesh->mNumFaces * 3;
+		info.vertexCount = mesh->mNumVertices;
+
+		meshInfos.push_back(info);
+	}
+
+	GLuint positionSize = sizeof(float) * 3;
+	GLuint normalSize = sizeof(float) * 3;
+	GLuint uvSize = sizeof(float) * 2;
+
+	GLuint positionOffset = positionSize * vertexCount;
+	GLuint normalOffset = positionOffset + normalSize * vertexCount;
+	GLuint uvOffset = normalOffset + uvSize * vertexCount;
+	GLuint bufferSize = uvOffset;
+
+	GLuint buffer;
+	glGenBuffers(1, &buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	glBufferData(GL_ARRAY_BUFFER, bufferSize, nullptr, GL_STATIC_DRAW);
+
+	for (GLuint meshIndex = 0; meshIndex < meshes.size(); meshIndex++)
+	{
+		GLuint meshPositionOffset = meshInfos[meshIndex].vertexOffset * positionSize;
+		GLuint meshNormalOffset = positionOffset + meshInfos[meshIndex].vertexOffset * normalSize;
+		GLuint meshUvOffset = normalOffset + meshInfos[meshIndex].vertexOffset * uvSize;
+
+		glBufferSubData(GL_ARRAY_BUFFER, meshPositionOffset, positionSize * meshInfos[meshIndex].vertexCount, meshes[meshIndex]->mVertices);
+		glBufferSubData(GL_ARRAY_BUFFER, meshNormalOffset, normalSize * meshInfos[meshIndex].vertexCount, meshes[meshIndex]->mNormals);
+
+		auto uvData = reinterpret_cast<char*>(glMapBufferRange(GL_ARRAY_BUFFER, meshUvOffset, uvSize * meshInfos[meshIndex].vertexCount, GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT));
+		for (GLuint i = 0; i < meshInfos[meshIndex].vertexCount; i++)
+		{
+			auto offset = uvSize * i;
+			memcpy(uvData + offset, &meshes[meshIndex]->mTextureCoords[0][i], uvSize);
+			glFlushMappedBufferRange(GL_ARRAY_BUFFER, offset, uvSize);
+		}
+
+		glFinish();
+		glUnmapBuffer(GL_ARRAY_BUFFER);
+	}
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(positionOffset));
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(normalOffset));
+	glEnableVertexAttribArray(2);
+
+	GLuint indexBuffer;
+	glGenBuffers(1, &indexBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * indexCount, nullptr, GL_STATIC_DRAW);
+	auto indexData = reinterpret_cast<char*>(glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(GLuint) * indexCount, GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT));
+
+	GLuint currentIndex = 0;
+	for (GLuint meshIndex = 0; meshIndex < meshes.size(); meshIndex++)
+	{
+		for (GLuint i = 0; i < meshInfos[meshIndex].indexCount/3; i++)
+		{
+			auto offset = sizeof(GLuint) * 3 * currentIndex;
+			auto copySize = sizeof(GLuint) * 3;
+			memcpy(indexData + offset, meshes[meshIndex]->mFaces[i].mIndices, copySize);
+			glFlushMappedBufferRange(GL_ELEMENT_ARRAY_BUFFER, offset, copySize);
+			currentIndex++;
+		}
+	}
+	glFinish();
+	glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+
+	return {buffer,indexBuffer,meshInfos};
+}
+
 int main() {
 	init();
 
@@ -84,65 +185,72 @@ int main() {
 
 
 	//int vertexCount = 0;
-
+	Assimp::Importer bearImporter;
+	const aiScene * bear = bearImporter.ReadFile("../../Models/Bear/bear-obj.obj", aiProcess_Triangulate);
 	GLuint cubeVertexArray;
 	glGenVertexArrays(1, &cubeVertexArray);
 	glBindVertexArray(cubeVertexArray);
 
+
 	aiMesh* mesh = scene->mMeshes[0];
+	aiMesh* bearMesh = bear->mMeshes[0];
+	auto meshBuffer = addMeshes({ mesh,bearMesh });
 
-	GLuint faceCount = mesh->mNumFaces;
-	GLuint indexCount = faceCount * 3;
-	GLuint vertexCount = mesh->mNumVertices;
+	//GLuint faceCount = mesh->mNumFaces + bearMesh->mNumFaces;
+	//GLuint indexCount = faceCount * 3;
+	//GLuint vertexCount = mesh->mNumVertices + bearMesh->mNumVertices;
 
-	GLuint positionSize = sizeof(float) * 3;
-	GLuint normalSize = sizeof(float) * 3;
-	GLuint uvSize = sizeof(float) * 2;
+	//GLuint positionSize = sizeof(float) * 3;
+	//GLuint normalSize = sizeof(float) * 3;
+	//GLuint uvSize = sizeof(float) * 2;
 
-	GLuint positionOffset = positionSize * vertexCount;
-	GLuint normalOffset = positionOffset + normalSize * vertexCount;
-	GLuint uvOffset = normalOffset + uvSize * vertexCount;
+	//GLuint positionOffset = positionSize * vertexCount;
+	//GLuint normalOffset = positionOffset + normalSize * vertexCount;
+	//GLuint uvOffset = normalOffset + uvSize * vertexCount;
 
-	GLuint cubeBuffer; // position, normal, texture
-	glGenBuffers(1, &cubeBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, cubeBuffer);
-	glBufferData(GL_ARRAY_BUFFER, uvOffset, nullptr, GL_STATIC_DRAW);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, positionOffset, mesh->mVertices);
-	glBufferSubData(GL_ARRAY_BUFFER, positionOffset, normalSize * vertexCount, mesh->mNormals);
+	//GLuint cubeBuffer; // position, normal, texture
+	//glGenBuffers(1, &cubeBuffer);
+	//glBindBuffer(GL_ARRAY_BUFFER, cubeBuffer);
+	//glBufferData(GL_ARRAY_BUFFER, uvOffset, nullptr, GL_STATIC_DRAW);
+	//glBufferSubData(GL_ARRAY_BUFFER, 0, positionOffset, mesh->mVertices);
+	//glBufferSubData(GL_ARRAY_BUFFER, positionOffset, normalSize * vertexCount, mesh->mNormals);
 
-	auto uvData = reinterpret_cast<char*>(glMapBufferRange(GL_ARRAY_BUFFER, normalOffset, uvSize * vertexCount, GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT));
-	for (GLuint i = 0; i < vertexCount; i++)
-	{
-		auto offset = uvSize * i;
-		memcpy(uvData + offset, &mesh->mTextureCoords[0][i], uvSize);
-		glFlushMappedBufferRange(GL_ARRAY_BUFFER, offset, uvSize);
-	}
+	//auto uvData = reinterpret_cast<char*>(glMapBufferRange(GL_ARRAY_BUFFER, normalOffset, uvSize * vertexCount, GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT));
+	//for (GLuint i = 0; i < vertexCount; i++)
+	//{
+	//	auto offset = uvSize * i;
+	//	memcpy(uvData + offset, &mesh->mTextureCoords[0][i], uvSize);
+	//	glFlushMappedBufferRange(GL_ARRAY_BUFFER, offset, uvSize);
+	//}
 
-	glFinish();
-	glUnmapBuffer(GL_ARRAY_BUFFER);
+	//glFinish();
+	//glUnmapBuffer(GL_ARRAY_BUFFER);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(positionOffset));
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(normalOffset));
-	glEnableVertexAttribArray(2);
+	//importer.FreeScene();
+	//bearImporter.FreeScene();
 
-	GLuint indexSize = sizeof(mesh->mFaces[0].mIndices[0]);
-	GLuint indexBuffer;
-	glGenBuffers(1, &indexBuffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexSize * indexCount, nullptr, GL_STATIC_DRAW);
-	auto indexData = reinterpret_cast<char*>(glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, indexSize * indexCount, GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT));
-	for (GLuint i = 0; i < faceCount; i++)
-	{
-		auto offset = indexSize * 3 * i;
-		auto copySize = indexSize * 3;
-		memcpy(indexData + offset, mesh->mFaces[i].mIndices, copySize);
-		glFlushMappedBufferRange(GL_ELEMENT_ARRAY_BUFFER, offset, copySize);
-	}
-	glFinish();
-	glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+	////glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	////glEnableVertexAttribArray(0);
+	////glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(positionOffset));
+	////glEnableVertexAttribArray(1);
+	////glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(normalOffset));
+	////glEnableVertexAttribArray(2);
+
+	//GLuint indexSize = sizeof(mesh->mFaces[0].mIndices[0]);
+	//GLuint indexBuffer;
+	//glGenBuffers(1, &indexBuffer);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexSize * indexCount, nullptr, GL_STATIC_DRAW);
+	//auto indexData = reinterpret_cast<char*>(glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, indexSize * indexCount, GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT));
+	//for (GLuint i = 0; i < faceCount; i++)
+	//{
+	//	auto offset = indexSize * 3 * i;
+	//	auto copySize = indexSize * 3;
+	//	memcpy(indexData + offset, mesh->mFaces[i].mIndices, copySize);
+	//	glFlushMappedBufferRange(GL_ELEMENT_ARRAY_BUFFER, offset, copySize);
+	//}
+	//glFinish();
+	//glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 
 	int imageWidth, imageHeight, channels;
 
@@ -210,8 +318,17 @@ int main() {
 			* glm::scale(glm::vec3{ 100.0f, 100.0f,100.0f })
 			* glm::rotate(glm::radians((float)glfwGetTime()* 20.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // model
 		glUniformMatrix4fv(modelIndex, 1, GL_FALSE, &model[0][0]);
-		glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, reinterpret_cast<void*>(0));
 
+		auto cubeInfo = meshBuffer.meshInfos[0];
+		glDrawElements(GL_TRIANGLES, cubeInfo.indexCount, GL_UNSIGNED_INT, reinterpret_cast<void*>(cubeInfo.indexOffset));
+
+		model = glm::translate(glm::vec3{ 0.0f,-0.5f,-5.0f })
+			* glm::scale(glm::vec3{ 0.1f, 0.1f,0.1f })
+			* glm::rotate(glm::radians((float)glfwGetTime()* 20.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // model
+		glUniformMatrix4fv(modelIndex, 1, GL_FALSE, &model[0][0]);
+
+		auto bearInfo = meshBuffer.meshInfos[1];
+		glDrawElements(GL_TRIANGLES, bearInfo.indexCount, GL_UNSIGNED_INT, reinterpret_cast<void*>(bearInfo.indexOffset * sizeof(GLuint)));
 
 
 #ifndef NDEBUG 
@@ -222,9 +339,9 @@ int main() {
 	}
 
 	glDeleteTextures(1, &cubeTexture);
-	glDeleteBuffers(1, &cubeBuffer);
+	glDeleteBuffers(1, &meshBuffer.indexBuffer);
 	//glDeleteBuffers(1, &unpackBuffer);
-	glDeleteBuffers(1, &indexBuffer);
+	glDeleteBuffers(1, &meshBuffer.vertexBuffer);
 	glDeleteVertexArrays(1, &cubeVertexArray);
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
