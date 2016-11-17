@@ -202,14 +202,16 @@ int main() {
 	auto ambientLocation = glGetUniformLocation(program, "ambient");
 	auto diffuseLocation = glGetUniformLocation(program, "diffuse");
 	auto specularLocation = glGetUniformLocation(program, "specular");
+	auto specularStrengthLocation = glGetUniformLocation(program, "specularStrength");
 	auto lightDirectionLocation = glGetUniformLocation(program, "lightDirection");
 	auto eyeDirectionLocation = glGetUniformLocation(program, "eyeDirection");
 	
 	auto lightingSubroutineLocation = glGetSubroutineUniformLocation(program, GL_FRAGMENT_SHADER, "lighting");
-	auto ambientSubroutineLocation = glGetSubroutineIndex(program, GL_FRAGMENT_SHADER, "ambientLighting");
-	auto diffuseSubroutineLocation = glGetSubroutineIndex(program, GL_FRAGMENT_SHADER, "diffuseLighting");
+	auto ambientSubroutineIndex = glGetSubroutineIndex(program, GL_FRAGMENT_SHADER, "ambientLighting");
+	auto diffuseSubroutineIndex = glGetSubroutineIndex(program, GL_FRAGMENT_SHADER, "diffuseLighting");
+	auto directionalSubroutineIndex = glGetSubroutineIndex(program, GL_FRAGMENT_SHADER, "directionalLighting");
 	
-	GLuint selectedSubroutine [] = { diffuseSubroutineLocation };
+	GLuint selectedSubroutine [] = { directionalSubroutineIndex };
 
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, selectedSubroutine);
 
@@ -229,10 +231,11 @@ int main() {
 
 	/*Specular light is light that is reflected directly by the surface, this highlighting is related to how much the 
 	surface acts like a mirror.*/
-	glm::vec4 specular(.6f, .6f, .6f, 20.0f);
+	glm::vec4 specular(.8f, .8f, .8f, 0.5f);
 	glUniform4fv(specularLocation, 1, &specular[0]);
 	glm::vec4 eyeDirection = glm::vec4(glm::normalize(glm::vec3(-0.1, -0.1, -1)), 1.0);
 	glUniform4fv(eyeDirectionLocation, 1, &eyeDirection[0]);
+	glUniform1f(specularStrengthLocation, 10.0f);
 
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(1, 1, 1, 1);
