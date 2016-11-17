@@ -135,6 +135,7 @@ int main() {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, framebufferTexture);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//mutable texture 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
 	glGenRenderbuffers(1, &depthbuffer);
@@ -150,7 +151,8 @@ int main() {
 	GLuint textureTriLoc = glGetUniformLocation(program, "textureTri");
 	while (!glfwWindowShouldClose(window))
 	{
-		glClearColor(0, 1, 0, 1);
+		glInvalidateTexImage(framebufferTexture, 0);
+		glClearColor(sin(glfwGetTime()), .2, cos(glfwGetTime()), 1);
 		glUniform1i(textureTriLoc, GL_FALSE);
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 		glViewport(0, 0, width, height);
@@ -164,6 +166,11 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		
+		// if you know that you are going to redraw the entire screen then it can be beneficial to 
+		// clear the framebuffer through invalidation. Otherwise it is not wise to do so as OpenGL will
+		// clear the buffer in a better way.
+		GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_DEPTH_COMPONENT };
+		glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
 #ifndef NDEBUG 
 		glFinish();
 #endif

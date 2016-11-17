@@ -85,9 +85,6 @@ int main() {
 		exit(-1);
 	}
 
-
-	//int vertexCount = 0;
-
 	GLuint dogVertexArray;
 	glGenVertexArrays(1, &dogVertexArray);
 	glBindVertexArray(dogVertexArray);
@@ -148,12 +145,12 @@ int main() {
 	glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 
 	// Creating textures
-	/*The nice thing about texture objects in opengl is that they are not limited to only images, they can be
+	/*The nice thing about texture objects in opengl is that they are not limited to only images, they can be 
 	just a generic way of storing data for use in shaders. Generally for use with GPGPU*/
 	// Checkout proxy texture targets to know if you have the space to create a texture.
 	int imageWidth, imageHeight, channels;
-	GLubyte * imageBytes = SOIL_load_image("../../Models/Dog/dogColor.png", &imageWidth, &imageHeight, &channels, SOIL_LOAD_AUTO);
-
+	GLubyte * imageBytes = SOIL_load_image("../../Models/Dog/dogColor.png",&imageWidth, &imageHeight, &channels, SOIL_LOAD_AUTO);
+	
 	GLuint imageSize = sizeof(GLubyte) * imageWidth * imageHeight * channels;
 	GLuint dogTexture;
 	glGenTextures(1, &dogTexture);
@@ -161,31 +158,9 @@ int main() {
 	////common way of setting up textures
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, dogTexture);
-	/*glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);*/
 	glTexStorage2D(GL_TEXTURE_2D, 1, (channels == 4) ? GL_RGBA8 : GL_RGB8, imageWidth, imageHeight);
 	glGenerateMipmap(GL_TEXTURE_2D);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, imageWidth, imageHeight,
-		(channels == 4) ? GL_RGBA : GL_RGB, // format GL_RED - GL_RGBA as well as integer equivalents which allow you to take in data exactly as presented in the texture.
-											// this could be useful with ray tracing to transfer data around while maintaining values.
-		GL_UNSIGNED_BYTE, // the type of the texture data? FLOAT, INT, BYTE, DOUBLE etc
-		imageBytes);
-
-	//glGetTexImage() //to get texture pixels
-
-	//or from another buffer, the advantage of this method is that since it comes from a buffer the transfer of data can happen in parallel 
-	// where as the above method will wait until the transfer is completed. The advantage of the above method is that you can count on the 
-	// data being there and you can preform changes on it at will.
-	//GLuint unpackBuffer;
-	//glGenBuffers(1, &unpackBuffer);
-	//glBindBuffer(GL_PIXEL_UNPACK_BUFFER, unpackBuffer);
-	//glBufferData(GL_PIXEL_UNPACK_BUFFER, imageSize, imageBytes, GL_STATIC_DRAW);
-	//glBindTexture(GL_TEXTURE_2D, dogTexture);
-	//glActiveTexture(GL_TEXTURE0);
-	//glTexStorage2D(GL_TEXTURE_2D, 1, (channels == 4) ? GL_RGBA8 : GL_RGB8, imageWidth, imageHeight);
-	//glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, imageWidth, imageHeight, (channels == 4) ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, imageWidth, imageHeight, (channels == 4) ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, imageBytes);
 
 	delete[] imageBytes;
 
@@ -215,52 +190,66 @@ int main() {
 
 	auto vpIndex = glGetUniformLocation(program, "viewProjection");
 	auto modelIndex = glGetUniformLocation(program, "model");
+	
+	//the transpose inverse of the model view matrix
+	auto normalMatrixIndex = glGetUniformLocation(program, "normalMatrix");
+	glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));  // view
 	glm::mat4 vp = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 1000.f) // projection
-		* glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));  // view
+		* view;
 
 	glUniformMatrix4fv(vpIndex, 1, GL_FALSE, &vp[0][0]);
 
+	auto ambientLocation = glGetUniformLocation(program, "ambient");
+	auto diffuseLocation = glGetUniformLocation(program, "diffuse");
+	auto specularLocation = glGetUniformLocation(program, "specular");
+	auto lightDirectionLocation = glGetUniformLocation(program, "lightDirection");
+	auto eyeDirectionLocation = glGetUniformLocation(program, "eyeDirection");
+	
+	auto lightingSubroutineLocation = glGetSubroutineUniformLocation(program, GL_FRAGMENT_SHADER, "lighting");
+	auto ambientSubroutineLocation = glGetSubroutineIndex(program, GL_FRAGMENT_SHADER, "ambientLighting");
+	auto diffuseSubroutineLocation = glGetSubroutineIndex(program, GL_FRAGMENT_SHADER, "diffuseLighting");
+	
+	GLuint selectedSubroutine [] = { diffuseSubroutineLocation };
+
+	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, selectedSubroutine);
+
+	/* ambient light is not light from any particular direction, but rather is a constant light that exists throughout
+	the scene.*/
+	glm::vec3 ambient(0.7, 0.7, 0.7);
+	glUniform3fv(ambientLocation, 1, &ambient[0]);
+
+	/*Diffuse light is scattered by the surface in all directions equally. It doesn't matter what the direciton of
+	the eye is, but rather what the direction of the light is. Diffuse light computation depends on the surface normal, 
+	the direction of the light, and the color of the surface*/
+	//glm::vec3 diffuse(0.5, 0.6, 0.9);
+	glm::vec3 diffuse(1);
+	glUniform3fv(diffuseLocation, 1, &diffuse[0]);
+	glm::vec4 lightDirection = glm::vec4(glm::normalize(glm::vec3(0.5, 0.3, -1.0)),1.0);
+	glUniform4fv(lightDirectionLocation, 1, &lightDirection[0]);
+
+	/*Specular light is light that is reflected directly by the surface, this highlighting is related to how much the 
+	surface acts like a mirror.*/
+	glm::vec4 specular(.6f, .6f, .6f, 20.0f);
+	glUniform4fv(specularLocation, 1, &specular[0]);
+	glm::vec4 eyeDirection = glm::vec4(glm::normalize(glm::vec3(-0.1, -0.1, -1)), 1.0);
+	glUniform4fv(eyeDirectionLocation, 1, &eyeDirection[0]);
+
 	glEnable(GL_DEPTH_TEST);
-	//copying from a framebuffers to be used
-	glClearColor(0.2, 0.4, 0.7, 1);
-	glViewport(0, 0, width, height);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glm::mat4 model = glm::translate(glm::vec3{ 0.0f,-8.0f,-150.0f })
-		* glm::rotate((float)sin(glfwGetTime()), glm::vec3(1.0f, 0.0f, 1.0f))  // model
-		* glm::rotate((float)cos(glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f)); // model
-	glUniformMatrix4fv(modelIndex, 1, GL_FALSE, &model[0][0]);
-	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, reinterpret_cast<void*>(0));
-	glFinish();
-
-	GLuint fboTexture;
-	glGenTextures(1, &fboTexture);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, fboTexture);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, width, height, 0);
-
 	glClearColor(1, 1, 1, 1);
-
+	glm::mat4 model;
+	glm::mat3 normalMatrix;
 	while (!glfwWindowShouldClose(window))
 	{
-		//glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_2D, dogTexture);
-		//glActiveTexture(GL_TEXTURE1);
-		//glBindTexture(GL_TEXTURE_2D, fboTexture);
-		//glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, 512, 512, 0);
-
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		model = glm::translate(glm::vec3{ 0.0f,-8.0f,-250.0f })
-			* glm::rotate((float)sin(glfwGetTime()), glm::vec3(1.0f, 0.0f, 1.0f))  // model
-			* glm::rotate((float)cos(glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f)); // model
+		model = glm::translate(glm::vec3{ 0.0f,-8.0f,-250.0f }) 
+			* glm::rotate((float)sin(glfwGetTime()), glm::vec3(1.0f, 0.0f, 1.0f))
+			* glm::rotate((float)cos(glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
+		
+		normalMatrix = glm::mat3(glm::transpose(glm::inverse(view * model)));
 		glUniformMatrix4fv(modelIndex, 1, GL_FALSE, &model[0][0]);
+		glUniformMatrix3fv(normalMatrixIndex, 1, GL_FALSE, &normalMatrix[0][0]);
 		glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, reinterpret_cast<void*>(0));
-
-
 
 #ifndef NDEBUG 
 		glFinish();
@@ -271,7 +260,6 @@ int main() {
 
 	glDeleteTextures(1, &dogTexture);
 	glDeleteBuffers(1, &dogBuffer);
-	//glDeleteBuffers(1, &unpackBuffer);
 	glDeleteBuffers(1, &indexBuffer);
 	glDeleteVertexArrays(1, &dogVertexArray);
 	glDeleteShader(vertexShader);
@@ -288,9 +276,9 @@ void APIENTRY openglCallbackFunction(GLenum source,
 	GLenum severity,
 	GLsizei length,
 	const GLchar* message,
-	const void* userParam)
+	const void* userParam) 
 {
-	if (GL_DEBUG_TYPE_ERROR == type)
+	if(GL_DEBUG_TYPE_ERROR == type)
 		std::cout << message << std::endl;
 }
 void init() {
