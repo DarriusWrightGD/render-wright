@@ -203,15 +203,19 @@ int main() {
 	auto diffuseLocation = glGetUniformLocation(program, "diffuse");
 	auto specularLocation = glGetUniformLocation(program, "specular");
 	auto specularStrengthLocation = glGetUniformLocation(program, "specularStrength");
-	auto lightDirectionLocation = glGetUniformLocation(program, "lightDirection");
-	auto eyeDirectionLocation = glGetUniformLocation(program, "eyeDirection");
+	auto lightLocation = glGetUniformLocation(program, "light");
+	auto eyeLocation = glGetUniformLocation(program, "eye");
+	auto constantAttenuationLocation = glGetUniformLocation(program, "constantAttenuation");
+	auto linearAttenuationLocation = glGetUniformLocation(program, "linearAttenuation");
+	auto quadraticAttenuationLocation = glGetUniformLocation(program, "quadraticAttenuation");
 	
 	auto lightingSubroutineLocation = glGetSubroutineUniformLocation(program, GL_FRAGMENT_SHADER, "lighting");
 	auto ambientSubroutineIndex = glGetSubroutineIndex(program, GL_FRAGMENT_SHADER, "ambientLighting");
 	auto diffuseSubroutineIndex = glGetSubroutineIndex(program, GL_FRAGMENT_SHADER, "diffuseLighting");
 	auto directionalSubroutineIndex = glGetSubroutineIndex(program, GL_FRAGMENT_SHADER, "directionalLighting");
+	auto pointLightIndex = glGetSubroutineIndex(program, GL_FRAGMENT_SHADER, "pointLighting");
 	
-	GLuint selectedSubroutine [] = { directionalSubroutineIndex };
+	GLuint selectedSubroutine [] = { pointLightIndex };
 
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, selectedSubroutine);
 
@@ -226,19 +230,24 @@ int main() {
 	//glm::vec3 diffuse(0.5, 0.6, 0.9);
 	glm::vec3 diffuse(1);
 	glUniform3fv(diffuseLocation, 1, &diffuse[0]);
-	glm::vec4 lightDirection = glm::vec4(glm::normalize(glm::vec3(0.5, 0.3, -1.0)),1.0);
-	glUniform4fv(lightDirectionLocation, 1, &lightDirection[0]);
+	glm::vec4 light = glm::vec4(0.0f, -8.0f, -245.0f,1.0);//glm::vec4(glm::normalize(glm::vec3(0.5, 0.3, -1.0)),1.0);
+	glUniform4fv(lightLocation, 1, &light[0]);
 
 	/*Specular light is light that is reflected directly by the surface, this highlighting is related to how much the 
 	surface acts like a mirror.*/
 	glm::vec4 specular(.8f, .8f, .8f, 0.5f);
 	glUniform4fv(specularLocation, 1, &specular[0]);
-	glm::vec4 eyeDirection = glm::vec4(glm::normalize(glm::vec3(-0.1, -0.1, -1)), 1.0);
-	glUniform4fv(eyeDirectionLocation, 1, &eyeDirection[0]);
+	glm::vec4 eye = glm::vec4(0, 0, 0,1);//glm::vec4(glm::normalize(glm::vec3(-0.1, -0.1, -1)), 1.0);
+	glUniform4fv(eyeLocation, 1, &eye[0]);
 	glUniform1f(specularStrengthLocation, 10.0f);
 
+	/*Point light*/
+	glUniform1f(linearAttenuationLocation, 1);
+	glUniform1f(constantAttenuationLocation, 2);
+	glUniform1f(quadraticAttenuationLocation, 1);
+
 	glEnable(GL_DEPTH_TEST);
-	glClearColor(1, 1, 1, 1);
+	glClearColor(0.2,0.2,0.2, 1);
 	glm::mat4 model;
 	glm::mat3 normalMatrix;
 	while (!glfwWindowShouldClose(window))

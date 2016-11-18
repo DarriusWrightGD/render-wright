@@ -9,9 +9,11 @@ uniform mat4 model;
 uniform mat3 normalMatrix;
 out vec2 texCoord;
 out vec3 normal;
+out vec3 position;
 
 void main(){
 	texCoord = vTexCoord;
 	normal =  normalize(normalMatrix * vNormal.xyz);
-    gl_Position = viewProjection * model * vPosition;
+	position =  (model * vPosition).xyz;
+    gl_Position = viewProjection * vec4(position,1.0);
 }
