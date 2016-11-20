@@ -18,11 +18,42 @@ void error_callback(int error, const char* description)
 {
 	fprintf(stderr, "Error: %s\n", description);
 }
+glm::vec4 light = glm::vec4(5.0f, 35.0f, -220.0f, 1.0);
+
+static void print()
+{
+	std::cout << light.x << ", " << light.y << ", " << light.z << std::endl;
+}
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
+
+	if (key == GLFW_KEY_1) {
+		light.x += 0.1; print();
+	}
+
+
+	if (key == GLFW_KEY_2){
+		light.x -= 0.1; print();
+	}
+
+	if (key == GLFW_KEY_3) {
+		light.y += 0.1; print();
+	}
+
+	if (key == GLFW_KEY_4) {
+		light.y -= 0.1; print();
+	}
+
+	if (key == GLFW_KEY_5) {
+		light.z += 0.1; print();
+	}
+
+	if (key == GLFW_KEY_6) {
+		light.z -= 0.1; print();
+	}
 }
 
 void init();
@@ -205,17 +236,26 @@ int main() {
 	auto specularStrengthLocation = glGetUniformLocation(program, "specularStrength");
 	auto lightLocation = glGetUniformLocation(program, "light");
 	auto eyeLocation = glGetUniformLocation(program, "eye");
+
+	//point light
 	auto constantAttenuationLocation = glGetUniformLocation(program, "constantAttenuation");
 	auto linearAttenuationLocation = glGetUniformLocation(program, "linearAttenuation");
 	auto quadraticAttenuationLocation = glGetUniformLocation(program, "quadraticAttenuation");
 	
+	//spot light
+	auto coneDirectionLocation = glGetUniformLocation(program, "coneDirection");
+	auto spotExponentLocation = glGetUniformLocation(program, "spotExponent");
+	auto spotCosCutoffLocation = glGetUniformLocation(program, "spotCosCutoff");
+
 	auto lightingSubroutineLocation = glGetSubroutineUniformLocation(program, GL_FRAGMENT_SHADER, "lighting");
 	auto ambientSubroutineIndex = glGetSubroutineIndex(program, GL_FRAGMENT_SHADER, "ambientLighting");
 	auto diffuseSubroutineIndex = glGetSubroutineIndex(program, GL_FRAGMENT_SHADER, "diffuseLighting");
+	auto specularSubroutineIndex = glGetSubroutineIndex(program, GL_FRAGMENT_SHADER, "specularLighting");
 	auto directionalSubroutineIndex = glGetSubroutineIndex(program, GL_FRAGMENT_SHADER, "directionalLighting");
 	auto pointLightIndex = glGetSubroutineIndex(program, GL_FRAGMENT_SHADER, "pointLighting");
-	
-	GLuint selectedSubroutine [] = { pointLightIndex };
+	auto spotLightIndex = glGetSubroutineIndex(program, GL_FRAGMENT_SHADER, "spotLighting");
+
+	GLuint selectedSubroutine [] = { spotLightIndex };
 
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, selectedSubroutine);
 
@@ -224,27 +264,35 @@ int main() {
 	glm::vec3 ambient(0.7, 0.7, 0.7);
 	glUniform3fv(ambientLocation, 1, &ambient[0]);
 
-	/*Diffuse light is scattered by the surface in all directions equally. It doesn't matter what the direciton of
+	/*Diffuse light is scattered by the surface in all directions equally. It doesn't matter what the direction of
 	the eye is, but rather what the direction of the light is. Diffuse light computation depends on the surface normal, 
 	the direction of the light, and the color of the surface*/
 	//glm::vec3 diffuse(0.5, 0.6, 0.9);
-	glm::vec3 diffuse(1);
+	glm::vec3 diffuse(.7);
 	glUniform3fv(diffuseLocation, 1, &diffuse[0]);
-	glm::vec4 light = glm::vec4(0.0f, -8.0f, -245.0f,1.0);//glm::vec4(glm::normalize(glm::vec3(0.5, 0.3, -1.0)),1.0);
+	//glm::vec4 light = glm::vec4(glm::normalize(glm::vec3(0.5, 0.3, -1.0)),1.0);
+	//glm::vec4 light = glm::vec4(5.0f, 35.0f, -235.0f,1.0);
 	glUniform4fv(lightLocation, 1, &light[0]);
 
 	/*Specular light is light that is reflected directly by the surface, this highlighting is related to how much the 
 	surface acts like a mirror.*/
-	glm::vec4 specular(.8f, .8f, .8f, 0.5f);
+	glm::vec4 specular(.8f, .8f, .8f, 2.0f);
 	glUniform4fv(specularLocation, 1, &specular[0]);
-	glm::vec4 eye = glm::vec4(0, 0, 0,1);//glm::vec4(glm::normalize(glm::vec3(-0.1, -0.1, -1)), 1.0);
+	glm::vec4 eye = glm::vec4(glm::normalize(glm::vec3(-0.1, -0.1, -1)), 1.0);
+	//glm::vec4 eye = glm::vec4(0, 0, -1,1);
 	glUniform4fv(eyeLocation, 1, &eye[0]);
-	glUniform1f(specularStrengthLocation, 10.0f);
+	glUniform1f(specularStrengthLocation, 2.0f);
 
 	/*Point light*/
-	glUniform1f(linearAttenuationLocation, 1);
-	glUniform1f(constantAttenuationLocation, 2);
-	glUniform1f(quadraticAttenuationLocation, 1);
+	glUniform1f(linearAttenuationLocation, .1);
+	glUniform1f(constantAttenuationLocation, 1);
+	glUniform1f(quadraticAttenuationLocation, 0);
+
+	//Spot light
+	glm::vec3 coneDirection(glm::normalize(glm::vec3(0.3,0.3,-1)));
+	glUniform3fv(coneDirectionLocation, 1, &coneDirection[0]);
+	glUniform1f(spotCosCutoffLocation, 60.0f);
+	glUniform1f(spotExponentLocation, 2.0f);
 
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.2,0.2,0.2, 1);
@@ -252,6 +300,7 @@ int main() {
 	glm::mat3 normalMatrix;
 	while (!glfwWindowShouldClose(window))
 	{
+		glUniform4fv(lightLocation, 1, &light[0]);
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		model = glm::translate(glm::vec3{ 0.0f,-8.0f,-250.0f }) 
@@ -319,6 +368,7 @@ void init() {
 	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 	glfwSwapInterval(1);
 	glfwGetFramebufferSize(window, &width, &height);
+	glfwSetKeyCallback(window, key_callback);
 	std::cout << "OpenGL Version: " << GLVersion.major << "." << GLVersion.minor << " loaded" << std::endl;
 	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	glDebugMessageCallback(openglCallbackFunction, nullptr);
