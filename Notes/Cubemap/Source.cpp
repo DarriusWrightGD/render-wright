@@ -145,13 +145,19 @@ MeshBuffer addMeshes(vector<aiMesh*> meshes)
 	auto indexData = reinterpret_cast<char*>(glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(GLuint) * indexCount, GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT));
 
 	GLuint currentIndex = 0;
+	GLuint face[3];
+
 	for (GLuint meshIndex = 0; meshIndex < meshes.size(); meshIndex++)
 	{
 		for (GLuint i = 0; i < meshInfos[meshIndex].indexCount/3; i++)
 		{
 			auto offset = sizeof(GLuint) * 3 * currentIndex;
 			auto copySize = sizeof(GLuint) * 3;
-			memcpy(indexData + offset, meshes[meshIndex]->mFaces[i].mIndices, copySize);
+			face[0] = meshes[meshIndex]->mFaces[i].mIndices[0] + meshInfos[meshIndex].indexOffset;
+			face[1] = meshes[meshIndex]->mFaces[i].mIndices[1] + meshInfos[meshIndex].indexOffset;
+			face[2] = meshes[meshIndex]->mFaces[i].mIndices[2] + meshInfos[meshIndex].indexOffset;
+
+			memcpy(indexData + offset, face, copySize);
 			glFlushMappedBufferRange(GL_ELEMENT_ARRAY_BUFFER, offset, copySize);
 			currentIndex++;
 		}
@@ -159,6 +165,11 @@ MeshBuffer addMeshes(vector<aiMesh*> meshes)
 	glFinish();
 	glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 
+	auto data = reinterpret_cast<GLuint*>(glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(GLuint) * indexCount, GL_MAP_READ_BIT));
+	/*for (GLuint i = 0; i < indexCount; i++) 
+		std::cout << data[i] << std::endl;*/
+
+	glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 	return {buffer,indexBuffer,meshInfos};
 }
 
@@ -196,65 +207,9 @@ int main() {
 	aiMesh* bearMesh = bear->mMeshes[0];
 	auto meshBuffer = addMeshes({ mesh,bearMesh });
 
-	//GLuint faceCount = mesh->mNumFaces + bearMesh->mNumFaces;
-	//GLuint indexCount = faceCount * 3;
-	//GLuint vertexCount = mesh->mNumVertices + bearMesh->mNumVertices;
-
-	//GLuint positionSize = sizeof(float) * 3;
-	//GLuint normalSize = sizeof(float) * 3;
-	//GLuint uvSize = sizeof(float) * 2;
-
-	//GLuint positionOffset = positionSize * vertexCount;
-	//GLuint normalOffset = positionOffset + normalSize * vertexCount;
-	//GLuint uvOffset = normalOffset + uvSize * vertexCount;
-
-	//GLuint cubeBuffer; // position, normal, texture
-	//glGenBuffers(1, &cubeBuffer);
-	//glBindBuffer(GL_ARRAY_BUFFER, cubeBuffer);
-	//glBufferData(GL_ARRAY_BUFFER, uvOffset, nullptr, GL_STATIC_DRAW);
-	//glBufferSubData(GL_ARRAY_BUFFER, 0, positionOffset, mesh->mVertices);
-	//glBufferSubData(GL_ARRAY_BUFFER, positionOffset, normalSize * vertexCount, mesh->mNormals);
-
-	//auto uvData = reinterpret_cast<char*>(glMapBufferRange(GL_ARRAY_BUFFER, normalOffset, uvSize * vertexCount, GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT));
-	//for (GLuint i = 0; i < vertexCount; i++)
-	//{
-	//	auto offset = uvSize * i;
-	//	memcpy(uvData + offset, &mesh->mTextureCoords[0][i], uvSize);
-	//	glFlushMappedBufferRange(GL_ARRAY_BUFFER, offset, uvSize);
-	//}
-
-	//glFinish();
-	//glUnmapBuffer(GL_ARRAY_BUFFER);
-
-	//importer.FreeScene();
-	//bearImporter.FreeScene();
-
-	////glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-	////glEnableVertexAttribArray(0);
-	////glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(positionOffset));
-	////glEnableVertexAttribArray(1);
-	////glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(normalOffset));
-	////glEnableVertexAttribArray(2);
-
-	//GLuint indexSize = sizeof(mesh->mFaces[0].mIndices[0]);
-	//GLuint indexBuffer;
-	//glGenBuffers(1, &indexBuffer);
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexSize * indexCount, nullptr, GL_STATIC_DRAW);
-	//auto indexData = reinterpret_cast<char*>(glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, indexSize * indexCount, GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT));
-	//for (GLuint i = 0; i < faceCount; i++)
-	//{
-	//	auto offset = indexSize * 3 * i;
-	//	auto copySize = indexSize * 3;
-	//	memcpy(indexData + offset, mesh->mFaces[i].mIndices, copySize);
-	//	glFlushMappedBufferRange(GL_ELEMENT_ARRAY_BUFFER, offset, copySize);
-	//}
-	//glFinish();
-	//glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
-
 	int imageWidth, imageHeight, channels;
 
-	std::string cubeMapPath = "../../Models/Cube/City/";
+	std::string cubeMapPath = "../../Models/Cube/Outdoors/";
 	std::vector<std::string> cubeMapFiles = { "posx.jpg","negx.jpg" ,"posy.jpg" ,"negy.jpg" ,"posz.jpg" ,"negz.jpg" };
 
 
@@ -308,9 +263,13 @@ int main() {
 
 	glUniformMatrix4fv(vpIndex, 1, GL_FALSE, &vp[0][0]);
 
+	auto envLocation = glGetUniformLocation(program, "environmentMap");
+
+
 	glEnable(GL_DEPTH_TEST);
 	while (!glfwWindowShouldClose(window))
 	{
+		glUniform1i(envLocation, GL_FALSE);
 
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -321,14 +280,17 @@ int main() {
 
 		auto cubeInfo = meshBuffer.meshInfos[0];
 		glDrawElements(GL_TRIANGLES, cubeInfo.indexCount, GL_UNSIGNED_INT, reinterpret_cast<void*>(cubeInfo.indexOffset));
-
+		
+		glUniform1i(envLocation, GL_TRUE);
 		model = glm::translate(glm::vec3{ 0.0f,-0.5f,-5.0f })
 			* glm::scale(glm::vec3{ 0.1f, 0.1f,0.1f })
 			* glm::rotate(glm::radians((float)glfwGetTime()* 20.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // model
 		glUniformMatrix4fv(modelIndex, 1, GL_FALSE, &model[0][0]);
 
 		auto bearInfo = meshBuffer.meshInfos[1];
-		glDrawElements(GL_TRIANGLES, bearInfo.indexCount, GL_UNSIGNED_INT, reinterpret_cast<void*>(bearInfo.indexOffset * sizeof(GLuint)));
+		//glDrawElements(GL_TRIANGLES, bearInfo.indexCount, GL_UNSIGNED_INT, reinterpret_cast<void*>(bearInfo.indexOffset * sizeof(GLuint)));
+		GLuint skip = sizeof(GLuint) * 36;
+		glDrawElements(GL_TRIANGLES, bearInfo.indexCount, GL_UNSIGNED_INT, reinterpret_cast<void*>(skip));
 
 
 #ifndef NDEBUG 

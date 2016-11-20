@@ -106,7 +106,7 @@ subroutine (LightFunc) vec4 spotLighting(vec4 color) {
 
 	float spotCos = acos(dot(-lightDirection, coneDirection));
 	float cutoff = radians(clamp(spotCosCutoff, 0.0f,90.0f));
-	//cutoff = radians(90.0f);
+
 	if(spotCos < cutoff) {
 		float spotFactor = pow(dot(-lightDirection, coneDirection), spotExponent);
 
@@ -121,7 +121,6 @@ subroutine (LightFunc) vec4 spotLighting(vec4 color) {
 		vec3 reflectedLight = specular.xyz * specularPower;
 
 		vec3 rgb = min(color.xyz * scatteredLight + reflectedLight,vec3(1.0));
-		//vec3 rgb = min(scatteredLight,vec3(1.0));
 
 		return vec4(rgb, color.a);
 	}else{

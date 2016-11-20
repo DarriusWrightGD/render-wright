@@ -7,8 +7,9 @@ layout (location = 2) in vec2 vTexCoord;
 uniform mat4 viewProjection;
 uniform mat4 model;
 out vec3 texCoord;
-
+out vec3 normal;
 void main(){
+	normal = vNormal.xyz;
 	texCoord = vPosition.xyz;
     gl_Position = viewProjection * model * vPosition;
 }

@@ -2,12 +2,15 @@
 
 out vec4 fColor;
 in vec3 texCoord;
+in vec3 normal;
 
 layout(binding=0) uniform samplerCube tex;
-
+uniform bool environmentMap;
 void main() {
-	//the negative one is a temp hack until I find a way to flip the image with soil
-	//vec2 flippedTexCoord = vec2(texCoord.x, 1.0-texCoord.y);
-    //fColor = mix(texture(tex,flippedTexCoord),texture(fbo,flippedTexCoord), .3);
-	fColor= texture(tex,texCoord);
+	if(environmentMap) {
+		vec3 coords = reflect(-texCoord, normal);
+		fColor= vec4(0.3,0.2,0.1,1.0) + vec4(0.97,0.83,0.79,0.0) * texture(tex,coords);
+	}else {
+		fColor= texture(tex,texCoord);
+	}
 }
