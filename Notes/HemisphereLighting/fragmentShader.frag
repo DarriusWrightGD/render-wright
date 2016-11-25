@@ -8,7 +8,7 @@ in vec3 position;
 uniform sampler2D tex;
 
 uniform vec3 lightPosition = vec3(2.0f,-2.0f,-50.0f);
-uniform vec3 skyColor = vec3(.4,.4,.4);
+uniform vec3 skyColor = vec3(.3,.3,.3);
 uniform vec3 groundColor = vec3(0.1,0.0,0.3);
 
 

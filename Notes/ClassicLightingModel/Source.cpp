@@ -230,9 +230,14 @@ int main() {
 
 	glUniformMatrix4fv(vpIndex, 1, GL_FALSE, &vp[0][0]);
 
-	auto ambientLocation = glGetUniformLocation(program, "ambient");
-	auto diffuseLocation = glGetUniformLocation(program, "diffuse");
-	auto specularLocation = glGetUniformLocation(program, "specular");
+	static const GLchar * uniformNames[3] = {
+		"ambient", "diffuse", "specular"
+	};
+
+	GLuint uniformIndices[3];
+
+	glGetUniformIndices(program, 3, uniformNames, uniformIndices);
+
 	auto specularStrengthLocation = glGetUniformLocation(program, "specularStrength");
 	auto lightLocation = glGetUniformLocation(program, "light");
 	auto eyeLocation = glGetUniformLocation(program, "eye");
@@ -262,14 +267,14 @@ int main() {
 	/* ambient light is not light from any particular direction, but rather is a constant light that exists throughout
 	the scene.*/
 	glm::vec3 ambient(0.7, 0.7, 0.7);
-	glUniform3fv(ambientLocation, 1, &ambient[0]);
+	glUniform3fv(uniformIndices[0], 1, &ambient[0]);
 
 	/*Diffuse light is scattered by the surface in all directions equally. It doesn't matter what the direction of
 	the eye is, but rather what the direction of the light is. Diffuse light computation depends on the surface normal, 
 	the direction of the light, and the color of the surface*/
 	//glm::vec3 diffuse(0.5, 0.6, 0.9);
 	glm::vec3 diffuse(.7);
-	glUniform3fv(diffuseLocation, 1, &diffuse[0]);
+	glUniform3fv(uniformIndices[1], 1, &diffuse[0]);
 	//glm::vec4 light = glm::vec4(glm::normalize(glm::vec3(0.5, 0.3, -1.0)),1.0);
 	//glm::vec4 light = glm::vec4(5.0f, 35.0f, -235.0f,1.0);
 	glUniform4fv(lightLocation, 1, &light[0]);
@@ -277,7 +282,7 @@ int main() {
 	/*Specular light is light that is reflected directly by the surface, this highlighting is related to how much the 
 	surface acts like a mirror.*/
 	glm::vec4 specular(.8f, .8f, .8f, 2.0f);
-	glUniform4fv(specularLocation, 1, &specular[0]);
+	glUniform4fv(uniformIndices[2], 1, &specular[0]);
 	glm::vec4 eye = glm::vec4(glm::normalize(glm::vec3(-0.1, -0.1, -1)), 1.0);
 	//glm::vec4 eye = glm::vec4(0, 0, -1,1);
 	glUniform4fv(eyeLocation, 1, &eye[0]);
