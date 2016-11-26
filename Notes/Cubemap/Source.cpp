@@ -153,9 +153,9 @@ MeshBuffer addMeshes(vector<aiMesh*> meshes)
 		{
 			auto offset = sizeof(GLuint) * 3 * currentIndex;
 			auto copySize = sizeof(GLuint) * 3;
-			face[0] = meshes[meshIndex]->mFaces[i].mIndices[0] + meshInfos[meshIndex].indexOffset;
-			face[1] = meshes[meshIndex]->mFaces[i].mIndices[1] + meshInfos[meshIndex].indexOffset;
-			face[2] = meshes[meshIndex]->mFaces[i].mIndices[2] + meshInfos[meshIndex].indexOffset;
+			face[0] = meshes[meshIndex]->mFaces[i].mIndices[0];
+			face[1] = meshes[meshIndex]->mFaces[i].mIndices[1];
+			face[2] = meshes[meshIndex]->mFaces[i].mIndices[2];
 
 			memcpy(indexData + offset, face, copySize);
 			glFlushMappedBufferRange(GL_ELEMENT_ARRAY_BUFFER, offset, copySize);
@@ -289,8 +289,7 @@ int main() {
 
 		auto bearInfo = meshBuffer.meshInfos[1];
 		//glDrawElements(GL_TRIANGLES, bearInfo.indexCount, GL_UNSIGNED_INT, reinterpret_cast<void*>(bearInfo.indexOffset * sizeof(GLuint)));
-		GLuint skip = sizeof(GLuint) * 36;
-		glDrawElements(GL_TRIANGLES, bearInfo.indexCount, GL_UNSIGNED_INT, reinterpret_cast<void*>(skip));
+		glDrawElementsBaseVertex(GL_TRIANGLES, bearInfo.indexCount, GL_UNSIGNED_INT, reinterpret_cast<void*>(bearInfo.indexOffset * sizeof GLuint), bearInfo.vertexOffset);
 
 
 #ifndef NDEBUG 

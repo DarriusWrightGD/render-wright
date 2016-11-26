@@ -1,0 +1,17 @@
+#version 440 
+
+layout (vertices = 3) out;
+
+void main()
+{
+// for triangles there is one element in tesslevel inner which applies to the entire inner part of the triangle, and three 
+// in the outer level for each vertex in the triangle
+  if(gl_InvocationID ==0) {
+    gl_TessLevelInner[0] = 5.0;
+    gl_TessLevelOuter[0] = 2.0;
+    gl_TessLevelOuter[1] = 2.0;
+    gl_TessLevelOuter[2] = 2.0;
+  }
+
+  gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
+}
