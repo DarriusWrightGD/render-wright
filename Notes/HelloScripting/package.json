@@ -1,0 +1,23 @@
+{
+  "name": "helloscripting",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "autogypi": "^0.2.2",
+    "nbind": "^0.3.5",
+    "node-gyp": "^3.4.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "autogypi": "autogypi",
+    "node-gyp": "node-gyp",
+    "emcc-path": "emcc-path",
+    "copyasm": "copyasm",
+    "ndts": "ndts",
+	"bind": "autogypi --init-gyp -p nbind -s hello.cpp",
+	"build": "node-gyp configure build"
+  },
+  "author": "",
+  "license": "ISC"
+}

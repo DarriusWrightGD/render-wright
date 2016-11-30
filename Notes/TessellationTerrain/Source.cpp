@@ -66,7 +66,7 @@ int main() {
 	GLubyte * heightMap = new GLubyte[width * height];
 
 	GLfloat freqency = 6.0;
-	GLfloat scale = 1.5;
+	GLfloat scale = 0.8;
 	GLfloat xFactor = 1.0f / (width - 1);
 	GLfloat yFactor = 1.0f / (height - 1);
 	for (size_t x = 0; x < width; x++)

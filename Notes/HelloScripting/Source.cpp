@@ -57,12 +57,12 @@ GLuint createShader(const char * filename, GLuint shaderType) {
 }
 
 GLfloat vertices[6][2]{
-	{ -1.0f, -1.0f },
-	{ 1.0f, -1.0f },
-	{ -1.0f, 1.0f },
-	{ 1.0f, -1.0f },
-	{ 1.0f, 1.0f },
-	{ -1.0f, 1.0f},
+	{ -0.9f, -0.9f },
+	{ 0.85f, -0.9f },
+	{ -0.9f, 0.85f },
+	{ 0.9f, -0.85f },
+	{ 0.9f, 0.9f },
+	{ -0.85f, 0.9f},
 };
 
 int main() {
@@ -75,13 +75,13 @@ int main() {
 	3. Convert the input data into fragments
 	4. Perform additional per-fragment operations.
 	*/
-	GLuint fullScreenQuadVertexArray;
-	glGenVertexArrays(1, &fullScreenQuadVertexArray);
-	glBindVertexArray(fullScreenQuadVertexArray);
+	GLuint triangleVertexArray;
+	glGenVertexArrays(1, &triangleVertexArray);
+	glBindVertexArray(triangleVertexArray);
 
-	GLuint quadbuffer;
-	glGenBuffers(1, &quadbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, quadbuffer);
+	GLuint triangleBuffer;
+	glGenBuffers(1, &triangleBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, triangleBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	GLuint vertexShader = createShader("vertexShader.vert", GL_VERTEX_SHADER);
@@ -108,21 +108,10 @@ int main() {
 	glDetachShader(program, fragmentShader);
 	glUseProgram(program);
 
-	//static const char * uniformNames[2] = {
-	//	"width", "height"
-	//};
 
-	//GLuint uniformIndices[2];
-
-	//glGetUniformIndices(program, 2, uniformNames, uniformIndices);
-	//
-	//glUniform1f(uniformIndices[0], width);
-	//glUniform1f(uniformIndices[1], height);
-
+	
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(0));
 	glEnableVertexAttribArray(0);
-
-
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -136,8 +125,8 @@ int main() {
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-	glDeleteBuffers(1, &quadbuffer);
-	glDeleteVertexArrays(1, &fullScreenQuadVertexArray);
+	glDeleteBuffers(1, &triangleBuffer);
+	glDeleteVertexArrays(1, &triangleVertexArray);
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 	glDeleteProgram(program);
@@ -159,7 +148,7 @@ void init() {
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
-	window = glfwCreateWindow(1024, 768, "Hello GLFW", nullptr, nullptr);
+	window = glfwCreateWindow(640, 480, "Hello GLFW", nullptr, nullptr);
 	if (!window)
 	{
 		// Window or OpenGL context creation failed

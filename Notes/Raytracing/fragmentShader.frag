@@ -80,5 +80,6 @@ void main() {
 	}
 	else {
 		fColor = vec4(1,1,1,1);
+		fColor = vec4(ray.direction,1);
 	}
 }
