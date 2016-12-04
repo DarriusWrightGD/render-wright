@@ -64,7 +64,7 @@ void main() {
 	ray.direction = leftCorner + u * horizontal + v * vertical;
 
 	Sphere sphere;
-	sphere.center = vec3(0,0,-4);
+	sphere.center = vec3(-2,-2,-4);
 	sphere.radius = 2.0f;
 
 	vec3 hitPosition, normal;
